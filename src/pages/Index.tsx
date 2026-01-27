@@ -2,9 +2,12 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import MovieSection from "@/components/MovieSection";
 import Footer from "@/components/Footer";
-import { nowShowingMovies, comingSoonMovies, popularMovies } from "@/data/movies";
+import { useNowShowingMovies, useComingSoonMovies } from "@/hooks/useMovies";
 
 const Index = () => {
+  const { data: nowShowingMovies, isLoading: nowShowingLoading } = useNowShowingMovies();
+  const { data: comingSoonMovies, isLoading: comingSoonLoading } = useComingSoonMovies();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -18,19 +21,15 @@ const Index = () => {
           <MovieSection
             title="Now Showing"
             subtitle="Book tickets for movies currently in theaters"
-            movies={nowShowingMovies}
+            movies={nowShowingMovies || []}
+            isLoading={nowShowingLoading}
           />
           
           <MovieSection
             title="Coming Soon"
             subtitle="Upcoming movies you won't want to miss"
-            movies={comingSoonMovies}
-          />
-          
-          <MovieSection
-            title="Popular This Month"
-            subtitle="Most loved movies by our audience"
-            movies={popularMovies}
+            movies={comingSoonMovies || []}
+            isLoading={comingSoonLoading}
           />
         </div>
       </main>
