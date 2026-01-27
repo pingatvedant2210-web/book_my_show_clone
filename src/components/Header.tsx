@@ -1,10 +1,21 @@
-import { Search, Menu, X, MapPin, ChevronDown } from "lucide-react";
+import { Search, Menu, X, MapPin, ChevronDown, User, LogOut, Ticket } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Movies", href: "#movies" },
@@ -13,12 +24,17 @@ const Header = () => {
     { name: "Sports", href: "#sports" },
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
       <div className="container mx-auto">
         <div className="flex items-center justify-between h-16 lg:h-20 px-4">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <div className="text-2xl lg:text-3xl font-bold">
               <span className="text-primary">book</span>
               <span className="text-foreground">my</span>
@@ -47,9 +63,37 @@ const Header = () => {
               <span>Mumbai</span>
               <ChevronDown className="h-3 w-3" />
             </button>
-            <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
-              Sign In
-            </Button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                    <User className="h-4 w-4 mr-2" />
+                    Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+                  <DropdownMenuItem onClick={() => navigate('/bookings')} className="cursor-pointer">
+                    <Ticket className="h-4 w-4 mr-2" />
+                    My Bookings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => navigate('/auth')}
+              >
+                Sign In
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -103,13 +147,43 @@ const Header = () => {
                   {link.name}
                 </a>
               ))}
+              
+              {user && (
+                <button
+                  onClick={() => {
+                    navigate('/bookings');
+                    setIsMenuOpen(false);
+                  }}
+                  className="px-4 py-3 text-left text-foreground hover:bg-secondary transition-colors flex items-center gap-2"
+                >
+                  <Ticket className="h-4 w-4" />
+                  My Bookings
+                </button>
+              )}
             </nav>
 
             {/* Mobile Actions */}
             <div className="p-4 border-t border-border">
-              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                Sign In
-              </Button>
+              {user ? (
+                <Button 
+                  onClick={handleSignOut}
+                  variant="outline" 
+                  className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => {
+                    navigate('/auth');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         )}

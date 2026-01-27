@@ -1,14 +1,16 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
-import MovieCard, { Movie } from "./MovieCard";
+import MovieCard from "./MovieCard";
+import { Movie } from "@/hooks/useMovies";
 
 interface MovieSectionProps {
   title: string;
   subtitle?: string;
   movies: Movie[];
+  isLoading?: boolean;
 }
 
-const MovieSection = ({ title, subtitle, movies }: MovieSectionProps) => {
+const MovieSection = ({ title, subtitle, movies, isLoading }: MovieSectionProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -20,6 +22,36 @@ const MovieSection = ({ title, subtitle, movies }: MovieSectionProps) => {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-8 lg:py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <h2 className="text-xl lg:text-2xl font-bold text-foreground">{title}</h2>
+              {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+            </div>
+          </div>
+          <div className="flex gap-4 lg:gap-6">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex-shrink-0 w-40 sm:w-48 lg:w-56 animate-pulse">
+                <div className="aspect-[2/3] rounded-lg bg-secondary" />
+                <div className="mt-3 space-y-2">
+                  <div className="h-4 bg-secondary rounded w-3/4" />
+                  <div className="h-3 bg-secondary rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (!movies?.length) {
+    return null;
+  }
 
   return (
     <section className="py-8 lg:py-12">

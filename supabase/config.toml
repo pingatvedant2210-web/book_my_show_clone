@@ -1,0 +1,4 @@
+project_id = "dkazdtnhpcczjuzhebmv"
+
+[functions.update-movie-availability]
+verify_jwt = false
