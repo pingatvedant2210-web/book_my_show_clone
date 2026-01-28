@@ -15,6 +15,7 @@ export interface Showtime {
     name: string;
     city: string;
     address: string | null;
+    total_seats: number;
   };
 }
 
@@ -26,7 +27,7 @@ export const useShowtimes = (movieId: string) => {
         .from('showtimes')
         .select(`
           *,
-          theater:theaters(id, name, city, address)
+          theater:theaters(id, name, city, address, total_seats)
         `)
         .eq('movie_id', movieId)
         .eq('is_available', true)

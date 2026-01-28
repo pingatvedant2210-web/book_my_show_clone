@@ -5,6 +5,7 @@ import { useShowtimes, Showtime } from '@/hooks/useShowtimes';
 import { useCreateBooking, useUpdateBookingPayment } from '@/hooks/useBookings';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import SeatSelection from '@/components/SeatSelection';
 import { toast } from 'sonner';
 import { ArrowLeft, Star, Clock, Calendar, MapPin, Users, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
@@ -22,8 +23,10 @@ const MovieDetail = () => {
   
   const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(null);
   const [seatsCount, setSeatsCount] = useState(1);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingStep, setBookingStep] = useState<'count' | 'seats' | 'confirm'>('count');
 
   const handleBookNow = (showtime: Showtime) => {
     if (!user) {
@@ -33,7 +36,25 @@ const MovieDetail = () => {
     }
     setSelectedShowtime(showtime);
     setSeatsCount(1);
+    setSelectedSeats([]);
+    setBookingStep('count');
     setShowBookingModal(true);
+  };
+
+  const handleProceedToSeats = () => {
+    setBookingStep('seats');
+  };
+
+  const handleSeatsSelected = (seats: string[]) => {
+    setSelectedSeats(seats);
+  };
+
+  const handleProceedToConfirm = () => {
+    if (selectedSeats.length !== seatsCount) {
+      toast.error(`Please select exactly ${seatsCount} seat(s)`);
+      return;
+    }
+    setBookingStep('confirm');
   };
 
   const handleConfirmBooking = async () => {
@@ -74,14 +95,14 @@ const MovieDetail = () => {
       
       // Mock email notification - show as toast
       toast.success(
-        `🎬 Booking Confirmed! Your booking code is: ${booking.booking_code || 'BMS' + booking.id.slice(0, 8).toUpperCase()}. A confirmation email has been sent to your registered email address.`,
+        `🎬 Booking Confirmed! Seats: ${selectedSeats.sort().join(', ')}. Booking code: ${booking.booking_code || 'BMS' + booking.id.slice(0, 8).toUpperCase()}. A confirmation email has been sent.`,
         { duration: 8000 }
       );
       
       // Show additional "email" notification
       setTimeout(() => {
         toast.info(
-          `📧 Email Notification: Your tickets for "${movie?.title}" on ${format(new Date(selectedShowtime.show_date), 'MMM dd')} at ${selectedShowtime.show_time} have been confirmed!`,
+          `📧 Email Notification: Your tickets (${selectedSeats.sort().join(', ')}) for "${movie?.title}" on ${format(new Date(selectedShowtime.show_date), 'MMM dd')} at ${selectedShowtime.show_time} have been confirmed!`,
           { duration: 6000 }
         );
       }, 1000);
@@ -284,75 +305,178 @@ const MovieDetail = () => {
 
       {/* Booking Modal */}
       {showBookingModal && selectedShowtime && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-card animate-scale-in">
-            <h3 className="text-xl font-bold text-foreground mb-4">Confirm Booking</h3>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center gap-3">
-                <Ticket className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-semibold text-foreground">{movie.title}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-2xl shadow-card animate-scale-in my-4">
+            {/* Step: Select Seat Count */}
+            {bookingStep === 'count' && (
+              <>
+                <h3 className="text-xl font-bold text-foreground mb-4">How Many Seats?</h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <Ticket className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-semibold text-foreground">{movie.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(selectedShowtime.show_date), 'EEEE, MMM dd')} at {selectedShowtime.show_time.slice(0, 5)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <p className="text-foreground">{selectedShowtime.theater.name}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-3">
+                      <span className="text-foreground">Number of Seats:</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSeatsCount(Math.max(1, seatsCount - 1))}
+                          className="w-8 h-8 rounded-full bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                          disabled={seatsCount <= 1}
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center font-semibold text-foreground">{seatsCount}</span>
+                        <button
+                          onClick={() => setSeatsCount(Math.min(10, seatsCount + 1))}
+                          className="w-8 h-8 rounded-full bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                          disabled={seatsCount >= 10 || seatsCount >= selectedShowtime.available_seats}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <p className="text-sm text-muted-foreground">
+                    {selectedShowtime.available_seats} seats available • ₹{selectedShowtime.price} per seat
+                  </p>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowBookingModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={handleProceedToSeats}
+                  >
+                    Select Seats
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* Step: Select Seats */}
+            {bookingStep === 'seats' && (
+              <>
+                <h3 className="text-xl font-bold text-foreground mb-4">Select Your Seats</h3>
+                
+                <div className="mb-4 p-3 bg-secondary/50 rounded-lg">
+                  <p className="text-sm text-foreground">
+                    <span className="font-semibold">{movie.title}</span> • {selectedShowtime.theater.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
                     {format(new Date(selectedShowtime.show_date), 'EEEE, MMM dd')} at {selectedShowtime.show_time.slice(0, 5)}
                   </p>
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-primary" />
-                <p className="text-foreground">{selectedShowtime.theater.name}</p>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-primary" />
-                <div className="flex items-center gap-3">
-                  <span className="text-foreground">Seats:</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setSeatsCount(Math.max(1, seatsCount - 1))}
-                      className="w-8 h-8 rounded-full bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
-                      disabled={seatsCount <= 1}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-semibold text-foreground">{seatsCount}</span>
-                    <button
-                      onClick={() => setSeatsCount(Math.min(10, seatsCount + 1))}
-                      className="w-8 h-8 rounded-full bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
-                      disabled={seatsCount >= 10 || seatsCount >= selectedShowtime.available_seats}
-                    >
-                      +
-                    </button>
+
+                <SeatSelection
+                  totalSeats={selectedShowtime.theater.total_seats || 100}
+                  availableSeats={selectedShowtime.available_seats}
+                  seatsToSelect={seatsCount}
+                  onSeatsSelected={handleSeatsSelected}
+                  selectedSeats={selectedSeats}
+                />
+                
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setBookingStep('count')}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={handleProceedToConfirm}
+                    disabled={selectedSeats.length !== seatsCount}
+                  >
+                    Confirm Seats ({selectedSeats.length}/{seatsCount})
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* Step: Confirm & Pay */}
+            {bookingStep === 'confirm' && (
+              <>
+                <h3 className="text-xl font-bold text-foreground mb-4">Confirm Booking</h3>
+                
+                <div className="space-y-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <Ticket className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-semibold text-foreground">{movie.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(selectedShowtime.show_date), 'EEEE, MMM dd')} at {selectedShowtime.show_time.slice(0, 5)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <p className="text-foreground">{selectedShowtime.theater.name}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-foreground">
+                        {seatsCount} Seat{seatsCount > 1 ? 's' : ''}: <span className="font-semibold">{selectedSeats.sort().join(', ')}</span>
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-border">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Ticket Price ({seatsCount} × ₹{selectedShowtime.price})</span>
+                      <span className="text-foreground">₹{(selectedShowtime.price * seatsCount).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold">
+                      <span className="text-foreground">Total Amount:</span>
+                      <span className="text-primary">₹{(selectedShowtime.price * seatsCount).toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="pt-4 border-t border-border">
-                <div className="flex justify-between text-lg font-bold">
-                  <span className="text-foreground">Total Amount:</span>
-                  <span className="text-primary">₹{(selectedShowtime.price * seatsCount).toFixed(2)}</span>
+                
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setBookingStep('seats')}
+                    disabled={isProcessingPayment}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={handleConfirmBooking}
+                    disabled={isProcessingPayment || createBooking.isPending}
+                  >
+                    {isProcessingPayment ? 'Processing...' : 'Pay & Book'}
+                  </Button>
                 </div>
-              </div>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowBookingModal(false)}
-                disabled={isProcessingPayment}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={handleConfirmBooking}
-                disabled={isProcessingPayment || createBooking.isPending}
-              >
-                {isProcessingPayment ? 'Processing...' : 'Pay & Book'}
-              </Button>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}
