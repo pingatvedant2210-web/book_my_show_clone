@@ -220,7 +220,7 @@ const MovieDetail = () => {
       {/* Showtimes Section */}
       <div className="container mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold text-foreground mb-6">
-          {movie.is_coming_soon ? 'Coming Soon' : 'Book Tickets'}
+          {movie.is_coming_soon ? 'Coming Soon' : `Theaters Showing ${movie.title}`}
         </h2>
         
         {movie.is_coming_soon ? (
