@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMovie } from '@/hooks/useMovies';
 import { useShowtimes, Showtime } from '@/hooks/useShowtimes';
-import { useCreateBooking, useUpdateBookingPayment } from '@/hooks/useBookings';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import SeatSelection from '@/components/SeatSelection';
@@ -18,15 +17,11 @@ const MovieDetail = () => {
   const { data: movie, isLoading: movieLoading } = useMovie(id || '');
   const { data: showtimes, isLoading: showtimesLoading } = useShowtimes(id || '');
   
-  const createBooking = useCreateBooking();
-  const updatePayment = useUpdateBookingPayment();
-  
   const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(null);
   const [seatsCount, setSeatsCount] = useState(1);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingStep, setBookingStep] = useState<'count' | 'seats' | 'confirm'>('count');
+  const [bookingStep, setBookingStep] = useState<'count' | 'seats'>('count');
 
   const handleBookNow = (showtime: Showtime) => {
     if (!user) {
@@ -49,68 +44,21 @@ const MovieDetail = () => {
     setSelectedSeats(seats);
   };
 
-  const handleProceedToConfirm = () => {
+  const handleProceedToPayment = () => {
     if (selectedSeats.length !== seatsCount) {
       toast.error(`Please select exactly ${seatsCount} seat(s)`);
       return;
     }
-    setBookingStep('confirm');
-  };
-
-  const handleConfirmBooking = async () => {
-    if (!selectedShowtime) return;
     
-    const totalAmount = selectedShowtime.price * seatsCount;
+    // Navigate to payment page with booking details
+    const params = new URLSearchParams({
+      movieId: id || '',
+      showtimeId: selectedShowtime?.id || '',
+      seats: selectedSeats.join(','),
+      seatsCount: seatsCount.toString(),
+    });
     
-    try {
-      // Create booking
-      const booking = await createBooking.mutateAsync({
-        showtime_id: selectedShowtime.id,
-        seats_count: seatsCount,
-        total_amount: totalAmount,
-      });
-      
-      // Start mock payment processing
-      setIsProcessingPayment(true);
-      toast.info('Processing payment...', { duration: 2000 });
-      
-      // Update to processing
-      await updatePayment.mutateAsync({
-        bookingId: booking.id,
-        paymentStatus: 'processing',
-      });
-      
-      // Simulate payment delay (2-3 seconds)
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      // Complete payment
-      await updatePayment.mutateAsync({
-        bookingId: booking.id,
-        paymentStatus: 'paid',
-        bookingStatus: 'confirmed',
-      });
-      
-      setIsProcessingPayment(false);
-      setShowBookingModal(false);
-      
-      // Mock email notification - show as toast
-      toast.success(
-        `🎬 Booking Confirmed! Seats: ${selectedSeats.sort().join(', ')}. Booking code: ${booking.booking_code || 'BMS' + booking.id.slice(0, 8).toUpperCase()}. A confirmation email has been sent.`,
-        { duration: 8000 }
-      );
-      
-      // Show additional "email" notification
-      setTimeout(() => {
-        toast.info(
-          `📧 Email Notification: Your tickets (${selectedSeats.sort().join(', ')}) for "${movie?.title}" on ${format(new Date(selectedShowtime.show_date), 'MMM dd')} at ${selectedShowtime.show_time} have been confirmed!`,
-          { duration: 6000 }
-        );
-      }, 1000);
-      
-    } catch (error) {
-      setIsProcessingPayment(false);
-      toast.error('Booking failed. Please try again.');
-    }
+    navigate(`/payment?${params.toString()}`);
   };
 
   // Group showtimes by date and theater
@@ -406,73 +354,11 @@ const MovieDetail = () => {
                     Back
                   </Button>
                   <Button
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={handleProceedToConfirm}
+                    className="flex-1"
+                    onClick={handleProceedToPayment}
                     disabled={selectedSeats.length !== seatsCount}
                   >
-                    Confirm Seats ({selectedSeats.length}/{seatsCount})
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {/* Step: Confirm & Pay */}
-            {bookingStep === 'confirm' && (
-              <>
-                <h3 className="text-xl font-bold text-foreground mb-4">Confirm Booking</h3>
-                
-                <div className="space-y-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <Ticket className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-semibold text-foreground">{movie.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(selectedShowtime.show_date), 'EEEE, MMM dd')} at {selectedShowtime.show_time.slice(0, 5)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    <p className="text-foreground">{selectedShowtime.theater.name}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-foreground">
-                        {seatsCount} Seat{seatsCount > 1 ? 's' : ''}: <span className="font-semibold">{selectedSeats.sort().join(', ')}</span>
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4 border-t border-border">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Ticket Price ({seatsCount} × ₹{selectedShowtime.price})</span>
-                      <span className="text-foreground">₹{(selectedShowtime.price * seatsCount).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold">
-                      <span className="text-foreground">Total Amount:</span>
-                      <span className="text-primary">₹{(selectedShowtime.price * seatsCount).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setBookingStep('seats')}
-                    disabled={isProcessingPayment}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={handleConfirmBooking}
-                    disabled={isProcessingPayment || createBooking.isPending}
-                  >
-                    {isProcessingPayment ? 'Processing...' : 'Pay & Book'}
+                    Proceed to Payment ({selectedSeats.length}/{seatsCount})
                   </Button>
                 </div>
               </>
