@@ -1,73 +1,100 @@
-# Welcome to your Lovable project
+# 🎬 BookMyShow Clone (AI-Generated via Lovable AI)
 
-## Project info
+🚀 **Project & Research Showcase: Prompt-Driven Web Development**
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+This project is a fully functional movie ticket booking application inspired by BookMyShow. Uniquely, it was developed using **Lovable AI**, exploring the capabilities of prompt-driven full-stack development. It serves as both a practical web application and a proof-of-concept for my final year research on AI-assisted software engineering.
 
-## How can I edit this code?
+## 📖 Research Context
+This application was built in tandem with a research paper analyzing:
+* Problem creation and friction in traditional web development.
+* How AI tools (like Lovable) solve modern software challenges.
+* The real-time applicability of AI in full-stack generation.
+* Effective prompt engineering workflows for complex UI/UX and database logic.
 
-There are several ways of editing your application.
+🔗 Research Paper: https://drive.google.com/file/d/1LicsfT5jApS1TBzhs-ez84SB6OD-9vWO/view
+🔗 Linkedin Post: https://www.linkedin.com/posts/vedant-pingat-004624293_artificialintelligence-webdevelopment-lovableai-ugcPost-7422353366519017472-VUeR?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEca9QQBHA5z5EfqozAkkwLHh2LN0lUhbvw
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## ✨ Key Features
 
-Changes made via Lovable will be committed automatically to this repo.
+* **Prompt-Based Generation:** Entire UI and core logic generated via natural language prompts.
+* **Authentication:** Secure user login and registration powered by Supabase Auth.
+* **Real-Time Database:** Movie listings, theater data, and booking states managed in Supabase (PostgreSQL).
+* **Interactive Seat Selection:** A dynamic UI allowing users to view available/booked seats and select their preferences.
+* **Payment Simulation:** A mock checkout workflow to complete the ticket booking process.
+* **Responsive Design:** Fully mobile-friendly interface built with Tailwind CSS.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🛠️ Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+**Frontend:**
+* React 18
+* Vite (Build Tool)
+* TypeScript
+* Tailwind CSS
+* shadcn/ui (Component Library)
 
-Follow these steps:
+**Backend & Database:**
+* Supabase (PostgreSQL, Authentication)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 📸 Screenshots
 
-# Step 3: Install the necessary dependencies.
-npm i
+*(Add screenshots or a GIF of your application here to show off the UI, seat selection, and checkout process!)*
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+<!-- Example: ![Home Page](link-to-image) -->
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🚀 Getting Started (Local Setup)
 
-**Use GitHub Codespaces**
+If you want to run this project locally, follow these steps:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Prerequisites
+* Node.js installed on your machine.
+* A Supabase account (for database and auth setup).
 
-## What technologies are used for this project?
+### Installation
 
-This project is built with:
+1. **Clone the repository:**
+   
+```bash
+   git clone [https://github.com/Vicky2210-web/book_my_show_clone.git](https://github.com/Vicky2210-web/book_my_show_clone.git)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Install dependencies:
+Using npm:
 
-## How can I deploy this project?
+Bash
+   npm install
+Or using bun:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Bash
+   bun install
+Set up Environment Variables:
+Create a .env.local or .env file in the root directory and add your Supabase credentials:
 
-## Can I connect a custom domain to my Lovable project?
+Code snippet
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+Start the development server:
 
-Yes, you can!
+Bash
+   npm run dev
+The app will typically be running at http://localhost:8080 (or the port Vite provides in the terminal).
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+🤝 Let's Connect
+Feel free to reach out if you want to discuss AI in web development, prompt engineering, or this project!
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+LinkedIn: [Insert Your LinkedIn Profile Link]
+
+GitHub: @Vicky2210-web
+
+Built with ❤️ (and AI) for my Final Year Project.
+
+### A few quick tips before you commit this:
+1. **Update the Links:** Make sure to replace the placeholder links like (Insert_Your_Paper_Link_Here) and [Insert Your LinkedIn Profile Link] with your actual URLs.
+2. **Add Screenshots:** Once you have the README up, take 2-3 screenshots of the app (the homepage, the seat selection screen, and the payment screen) and drag-and-drop them right into the "Screenshots" section via the GitHub web editor. It makes the repo look 10x better
+   cd book_my_show_clone
