@@ -39,13 +39,6 @@ This application was built in tandem with a research paper analyzing:
 **Backend & Database:**
 * Supabase (PostgreSQL, Authentication)
 
----
-
-## 📸 Screenshots
-
-*(Add screenshots or a GIF of your application here to show off the UI, seat selection, and checkout process!)*
-
-<!-- Example: ![Home Page](link-to-image) -->
 
 ---
 
